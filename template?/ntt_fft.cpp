@@ -52,6 +52,43 @@ void ntt(poly &a, bool inv) {
         for (auto &x : a) x = (ll)x * inv_n % M;
     }
 }
+
+using cd = complex<double>;  //a + bi (real,imag)
+const double PI = acos(-1);
+
+void fft(vector<cd> & a, bool invert) {
+    int n = a.size();
+
+    for (int i = 1, j = 0; i < n; i++) {
+        int bit = n >> 1;
+        for (; j & bit; bit >>= 1)
+            j ^= bit;
+        j ^= bit;
+
+        if (i < j)
+            swap(a[i], a[j]);
+    }
+
+    for (int len = 2; len <= n; len <<= 1) {
+        double ang = 2 * PI / len * (invert ? -1 : 1);
+        cd wlen(cos(ang), sin(ang));
+        for (int i = 0; i < n; i += len) {
+            cd w(1);
+            for (int j = 0; j < len / 2; j++) {
+                cd u = a[i+j], v = a[i+j+len/2] * w;
+                a[i+j] = u + v;
+                a[i+j+len/2] = u - v;
+                w *= wlen;
+            }
+        }
+    }
+
+    if (invert) {
+        for (cd & x : a)
+            x /= n;
+    }
+}
+
 poly multiply(poly a, poly b) {
     int sz = a.size() + b.size() - 1;
     int n = 1; while (n < sz) n <<= 1;
@@ -59,6 +96,17 @@ poly multiply(poly a, poly b) {
     ntt(a, false); ntt(b, false);
     for (int i = 0; i < n; i++) a[i] = (ll)a[i] * b[i] % M;
     ntt(a, true);
+    a.resize(sz);
+    return a;
+}
+
+vector<cd> multiply(vector<cd> a, vector<cd> b) {
+    int sz = a.size() + b.size() - 1;
+    int n = 1; while (n < sz) n <<= 1;
+    a.resize(n); b.resize(n);
+    fft(a, false); fft(b, false);
+    for (int i = 0; i < n; i++) a[i] = a[i] * b[i];
+    fft(a, true);
     a.resize(sz);
     return a;
 }
@@ -179,7 +227,7 @@ pair<poly, poly> poly_divmod(poly a, poly b) {
 
 int main (){
     ios::sync_with_stdio(0); cin.tie(0);
-    poly a={1,2}, b={3,4};
-    poly c=multiply(a,b);
+    vector<cd> a={1,2}, b={3,4};
+    vector<cd> c=multiply(a,b);
     for (auto e:c) cout << e << ' ';
 }
