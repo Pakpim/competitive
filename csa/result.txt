@@ -1,0 +1,4 @@
+CacheSim v.2015
+This program is designed for class exercise only.
+By Krerk Piromsopa, Ph.D.
+HIT: 1911848 MISS:   88153
